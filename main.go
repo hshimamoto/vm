@@ -12,13 +12,7 @@ import (
     "github.com/hshimamoto/vm/qemu"
 )
 
-func main() {
-    if len(os.Args) == 1 {
-	os.Exit(1)
-    }
-    subcmd := os.Args[1]
-    fmt.Println(subcmd)
-    opts := os.Args[2:]
+func launch(opts []string) {
     vm, err := qemu.FromConfig("config", opts)
     if err != nil {
 	return
@@ -26,4 +20,15 @@ func main() {
     cmd := vm.Qemu()
 
     fmt.Println(cmd)
+}
+
+func main() {
+    if len(os.Args) == 1 {
+	os.Exit(1)
+    }
+    subcmd := os.Args[1]
+    fmt.Println(subcmd)
+    if subcmd == "launch" {
+	launch(os.Args[2:])
+    }
 }
