@@ -19,7 +19,11 @@ func launch(opts []string) {
     }
     cmd := vm.Qemu()
 
-    fmt.Println(cmd)
+    err = cmd.Run()
+    // daemonize and return
+    if err != nil {
+	fmt.Printf("Run %v\n", err)
+    }
 }
 
 func main() {
