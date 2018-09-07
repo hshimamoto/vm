@@ -197,6 +197,7 @@ func (vm *VMConfig)parseOptions() {
 	case "qemu": vm.qemuexec = val
 	case "noshut": if val != "0" { vm.noreboot = true }
 	case "defaults": if val != "0" { vm.defaults = true }
+	case "cdrom": vm.drives = append(vm.drives, drive{ path: val, intf: "ide", media: "cdrom"})
 	}
     }
     // TODO hdX
@@ -217,9 +218,9 @@ func (vm *VMConfig)parseOptions() {
 		net.nettype = "user"
 		lo := vm.localIP(i)
 		net.hostfwds = []string{
-		    fmt.Sprintf("tcp=%s:10022-:22", lo),
-		    fmt.Sprintf("tcp=%s:10080-:80", lo),
-		    fmt.Sprintf("tcp=%s:13389-:3389", lo),
+		    fmt.Sprintf("tcp:%s:10022-:22", lo),
+		    fmt.Sprintf("tcp:%s:10080-:80", lo),
+		    fmt.Sprintf("tcp:%s:13389-:3389", lo),
 		}
 		continue
 	    }
