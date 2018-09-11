@@ -258,6 +258,10 @@ func (vm *VMConfig)parseOptions() {
 		nic.driver = param[7:]
 		continue
 	    }
+	    if param[:9] == "restrict=" {
+		net.restrict = param[9:]
+		continue
+	    }
 	}
 	vm.nics = append(vm.nics, nic)
 	vm.networks = append(vm.networks, net)

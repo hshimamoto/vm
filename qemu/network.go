@@ -28,6 +28,7 @@ type network struct {
     // user
     hostfwds []string // like tcp:127.0.0.1:10080-:80
     proxy string
+    restrict string
 }
 
 func (n *network)value() string {
@@ -40,6 +41,7 @@ func (n *network)value() string {
 	    v = push(v, "hostfwd", fwd)
 	}
 	v = push(v, "proxy", n.proxy)
+	v = push(v, "restrict", n.restrict)
     default:
 	// unknown
     }
