@@ -28,6 +28,7 @@ type VMConfig struct {
     cpu, smp, mem string
     defaults bool
     drives []drive
+    hd0 drive
     nics []nic
     networks []network
     sound string
@@ -130,8 +131,12 @@ func (vm *VMConfig)localSetup() {
 	    }
 	    return nil
 	});
-    if hd0.path != "" {
-	vm.drives = append(vm.drives, hd0)
+    if vm.hd0.path != "" {
+	vm.drives = append(vm.drives, vm.hd0)
+    } else {
+	if hd0.path != "" {
+	    vm.drives = append(vm.drives, hd0)
+	}
     }
     if hd1.path != "" {
 	vm.drives = append(vm.drives, hd0)
@@ -150,6 +155,8 @@ func NewVM(name string) *VMConfig {
 	qemuexec: "qemu-system-x86_64",
 	//
 	opts: map[string]string{},
+	//
+	hd0: drive{},
     }
     return vm
 }
@@ -201,6 +208,25 @@ func (vm *VMConfig)parseOptions() {
 	}
     }
     // TODO hdX
+    // check only hd0
+    if hdX[0] != "" {
+	vm.hd0 = drive{}
+	params := strings.Split(hdX[0], " ")
+	for _, param := range params {
+	    if param[:3] == "if=" {
+		vm.hd0.intf = param[3:]
+		continue
+	    }
+	    if param[:5] == "path=" {
+		vm.hd0.path = param[5:]
+		continue
+	    }
+	    if param[:7] == "format=" {
+		vm.hd0.format = param[7:]
+		continue
+	    }
+	}
+    }
     // nicX
     vm.nics = []nic{}
     vm.networks = []network{}
