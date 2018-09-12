@@ -262,6 +262,9 @@ func (vm *VMConfig)parseOptions() {
 		net.restrict = param[9:]
 		continue
 	    }
+	    if param[:9] == "guestfwd=" {
+		net.guestfwds = append(net.guestfwds, param[9:])
+	    }
 	}
 	vm.nics = append(vm.nics, nic)
 	vm.networks = append(vm.networks, net)

@@ -27,6 +27,7 @@ type network struct {
     netdev string
     // user
     hostfwds []string // like tcp:127.0.0.1:10080-:80
+    guestfwds []string
     proxy string
     restrict string
 }
@@ -39,6 +40,10 @@ func (n *network)value() string {
     case "user":
 	for _, fwd := range n.hostfwds {
 	    v = push(v, "hostfwd", fwd)
+	}
+	for _, fwd := range n.guestfwds {
+	    f := strings.Replace(fwd, "+", " ", -1)
+	    v = push(v, "guestfwd", f)
 	}
 	v = push(v, "proxy", n.proxy)
 	v = push(v, "restrict", n.restrict)
