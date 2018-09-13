@@ -76,6 +76,7 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     vm.push("-enable-kvm")
     vm.push("-daemonize")
     vm.push("-pidfile", "qemu.pid")
+    vm.push("-monitor", "vc")
     fmt.Println(vm.args)
     // env
     env := []string{
