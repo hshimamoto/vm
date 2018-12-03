@@ -251,6 +251,13 @@ func (vm *VMConfig)parseOptions() {
 		}
 		continue
 	    }
+	    if param[:7] == "socket=" {
+		net.nettype = "socket"
+		net.localIP = vm.localIP(i)
+		nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
+		// TODO: post script
+		continue
+	    }
 	    if param[:6] == "proxy=" {
 		net.proxy = param[6:]
 		continue

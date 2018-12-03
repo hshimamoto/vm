@@ -6,6 +6,7 @@
 package qemu
 
 import (
+    "fmt"
     "strings"
 )
 
@@ -30,6 +31,8 @@ type network struct {
     guestfwds []string
     proxy string
     restrict string
+    // socket
+    localIP string
 }
 
 func (n *network)value() string {
@@ -47,6 +50,8 @@ func (n *network)value() string {
 	}
 	v = push(v, "proxy", n.proxy)
 	v = push(v, "restrict", n.restrict)
+    case "socket":
+	v = push(v, "listen", fmt.Sprintf("%s:1111", n.localIP))
     default:
 	// unknown
     }
