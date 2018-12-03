@@ -259,12 +259,18 @@ func (vm *VMConfig)parseOptions() {
 		nic.driver = param[7:]
 		continue
 	    }
+	    if param[:8] == "hostfwd=" {
+		p := strings.Replace(param[8:], "$ip", vm.localIP(i), -1)
+		net.hostfwds = append(net.hostfwds, p)
+		continue
+	    }
 	    if param[:9] == "restrict=" {
 		net.restrict = param[9:]
 		continue
 	    }
 	    if param[:9] == "guestfwd=" {
 		net.guestfwds = append(net.guestfwds, param[9:])
+		continue
 	    }
 	}
 	vm.nics = append(vm.nics, nic)
