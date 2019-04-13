@@ -6,6 +6,7 @@
 package main
 
 import (
+    "encoding/binary"
     "fmt"
     "net"
     "os"
@@ -38,7 +39,7 @@ func (plug *Plug)communication() {
 	if r <= 0 {
 	    return
 	}
-	sz := (szbuf[0] << 24) | (szbuf[1] << 16) | (szbuf[2] << 8) | szbuf[3]
+	sz := binary.BigEndian.Uint32(szbuf)
 	//fmt.Printf("packet: %d\n", sz)
 	msgbuf := make([]byte, sz)
 	r, _ = conn.Read(msgbuf)
