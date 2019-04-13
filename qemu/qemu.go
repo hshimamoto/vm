@@ -87,6 +87,7 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     fmt.Println(env)
 
     cmd := exec.Command(vm.qemuexec, vm.args...)
+    cmd.Env = append(os.Environ(), env...)
     return cmd
 }
 

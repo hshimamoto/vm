@@ -62,7 +62,33 @@ func list(opts []string) {
 		disp = string(args[i+1])
 	    }
 	}
-	fmt.Printf("%d %s %s\n", pid, name, disp)
+	environ := fmt.Sprintf("/proc/%d/environ", pid)
+	f2, err := os. Open(environ)
+	if err != nil {
+	    // disappeared?
+	    continue
+	}
+	data2, err := ioutil.ReadAll(f2)
+	f2.Close()
+	vm_id := "-"
+	vm_name := "-"
+	vm_local_net := "-"
+	envs := bytes.Split(data2, []byte("\x00"))
+	for _, env := range envs {
+	    env := string(env)
+	    kv := strings.SplitN(env, "=", 2)
+	    if len(kv) < 2 {
+		continue
+	    }
+	    k := kv[0]
+	    v := kv[1]
+	    switch k {
+	    case "VM_ID": vm_id = v
+	    case "VM_NAME": vm_name = v
+	    case "VM_LOCAL_NET": vm_local_net = v
+	    }
+	}
+	fmt.Printf("%d %s %s %s %s %s\n", pid, name, disp, vm_id, vm_name, vm_local_net)
     }
 }
 
