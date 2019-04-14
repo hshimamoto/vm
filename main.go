@@ -17,6 +17,21 @@ import (
     "github.com/mitchellh/go-ps"
 )
 
+func procread(pid int, file string) []string {
+    contents := []string{}
+    procfile := fmt.Sprintf("/proc/%d/%s", pid, file)
+    f, err := os.Open(procfile)
+    if err != nil {
+	return contents
+    }
+    defer f.Close()
+    data, err := ioutil.ReadAll(f)
+    for _, elem := range bytes.Split(data, []byte("\x00")) {
+	contents = append(contents, string(elem))
+    }
+    return contents
+}
+
 func launch(opts []string) {
     vm, err := qemu.FromConfig("config", opts)
     if err != nil {
@@ -43,39 +58,26 @@ func list(opts []string) {
 	    continue
 	}
 	//fmt.Printf("%d: %s\n", pid, bin)
-	cmdline := fmt.Sprintf("/proc/%d/cmdline", pid)
-	f, err := os. Open(cmdline)
-	if err != nil {
-	    // disappeared?
+	args := procread(pid, "cmdline")
+	if len(args) == 0 {
 	    continue
 	}
-	data, err := ioutil.ReadAll(f)
-	f.Close()
 	name := ""
 	disp := ""
-	args := bytes.Split(data, []byte("\x00"))
 	for i, arg := range args {
-	    arg := string(arg)
-	    if arg == "-name" {
-		name = string(args[i+1])
-	    } else if arg == "-display" {
-		disp = string(args[i+1])
+	    switch arg {
+	    case "-name": name = args[i + 1]
+	    case "-disp": disp = args[i + 1]
 	    }
 	}
-	environ := fmt.Sprintf("/proc/%d/environ", pid)
-	f2, err := os. Open(environ)
-	if err != nil {
-	    // disappeared?
+	envs := procread(pid, "environ")
+	if len(envs) == 0 {
 	    continue
 	}
-	data2, err := ioutil.ReadAll(f2)
-	f2.Close()
 	vm_id := "-"
 	vm_name := "-"
 	vm_local_net := "-"
-	envs := bytes.Split(data2, []byte("\x00"))
 	for _, env := range envs {
-	    env := string(env)
 	    kv := strings.SplitN(env, "=", 2)
 	    if len(kv) < 2 {
 		continue
