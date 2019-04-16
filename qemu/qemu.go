@@ -23,6 +23,7 @@ func push(a []string, k, v string) []string {
 }
 
 type VMConfig struct {
+    dir string
     name string
     id int
     cpu, smp, mem string
@@ -82,6 +83,7 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     env := []string{
 	fmt.Sprintf("VM_ID=%d", vm.id),
 	fmt.Sprintf("VM_NAME=%s", vm.name),
+	fmt.Sprintf("VM_DIR=%s", vm.dir),
 	fmt.Sprintf("VM_LOCAL_NET=%s", vm.localIP(0)),
     }
     fmt.Println(env)
@@ -286,12 +288,13 @@ func (vm *VMConfig)parseOptions() {
     }
 }
 
-func FromConfig(path string, opts []string) (*VMConfig, error) {
+func FromConfig(dir, path string, opts []string) (*VMConfig, error) {
     f, err := os.Open(path)
     if err != nil {
 	return nil, fmt.Errorf("FromConfig: %v", err)
     }
     vm := NewVM("new")
+    vm.dir = dir
     // default network option
     vm.addOption("nic0=default")
     //

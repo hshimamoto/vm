@@ -33,7 +33,8 @@ func procread(pid int, file string) []string {
 }
 
 func launch(opts []string) {
-    vm, err := qemu.FromConfig("config", opts)
+    cwd, _ := os.Getwd()
+    vm, err := qemu.FromConfig(cwd, "config", opts)
     if err != nil {
 	return
     }
@@ -76,6 +77,7 @@ func list(opts []string) {
 	}
 	vm_id := "-"
 	vm_name := "-"
+	vm_dir := "-"
 	vm_local_net := "-"
 	for _, env := range envs {
 	    kv := strings.SplitN(env, "=", 2)
@@ -87,10 +89,12 @@ func list(opts []string) {
 	    switch k {
 	    case "VM_ID": vm_id = v
 	    case "VM_NAME": vm_name = v
+	    case "VM_DIR": vm_dir = v
 	    case "VM_LOCAL_NET": vm_local_net = v
 	    }
 	}
-	fmt.Printf("%d %s %s %s %s %s\n", pid, name, disp, vm_id, vm_name, vm_local_net)
+	fmt.Printf("%d %s %s %s %s %s %s\n",
+		pid, name, disp, vm_id, vm_name, vm_dir, vm_local_net)
     }
 }
 
