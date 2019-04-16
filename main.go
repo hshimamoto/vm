@@ -68,7 +68,7 @@ func list(opts []string) {
 	for i, arg := range args {
 	    switch arg {
 	    case "-name": name = args[i + 1]
-	    case "-disp": disp = args[i + 1]
+	    case "-display": disp = args[i + 1]
 	    }
 	}
 	envs := procread(pid, "environ")
