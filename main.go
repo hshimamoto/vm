@@ -38,6 +38,15 @@ func launch(opts []string) {
     if err != nil {
 	return
     }
+    prepare := vm.Prepare()
+    if prepare != nil {
+	out, err := prepare.Output()
+	if err != nil {
+	    fmt.Printf("Prepare %v\n", err)
+	}
+	fmt.Println(string(out))
+	return
+    }
     cmd := vm.Qemu()
 
     err = cmd.Run()

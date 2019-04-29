@@ -46,6 +46,23 @@ type VMConfig struct {
     args []string
 }
 
+func (vm *VMConfig)Prepare() *exec.Cmd {
+    // check tap
+    for _, net := range vm.networks {
+	if net.nsnwpid == "" {
+	    continue
+	}
+	if net.nsnwtapfd != "" {
+	    continue
+	}
+	args := []string{net.nsnwpid, net.nsnwtap}
+	args = append(args, os.Args...)
+	fmt.Printf("prepare nstap %v\n", args)
+	return exec.Command("nstap", args...)
+    }
+    return nil
+}
+
 func (vm *VMConfig)Qemu() *exec.Cmd {
     vm.args = []string{}
     vm.push("-name", vm.name)
@@ -259,6 +276,47 @@ func (vm *VMConfig)parseOptions() {
 		net.localIP = vm.localIP(i)
 		nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
 		// TODO: post script
+		continue
+	    }
+	    if param[:5] == "nsnw=" {
+		net.nettype = "tap"
+		net.nsnwtap = fmt.Sprintf("tap%s%d", vm.name, i)
+		// check env
+		key := fmt.Sprintf("NSTAPFD_%s", net.nsnwtap)
+		val, ok := os.LookupEnv(key)
+		if ok {
+		    net.nsnwtapfd = val
+		    fmt.Printf("%s=%s\n", net.nsnwtap, net.nsnwtapfd)
+		    continue
+		}
+		net.nsnwopt = param[5:]
+		opts := strings.Split(net.nsnwopt, ",")
+		for _, kv := range opts {
+		    v := strings.SplitN(kv, "=", 2)
+		    switch v[0] {
+		    case "path":
+			net.nsnwpath = v[1]
+		    case "br":
+			net.nsnwbr = v[1]
+		    }
+		}
+		// get pid and tap
+		f, err := os.Open(net.nsnwpath)
+		if err != nil {
+		    // TODO: error
+		    fmt.Printf("unknown nsnw %s\n", net.nsnwpath)
+		    continue
+		}
+		defer f.Close()
+		buf := make([]byte, 32)
+		n, err := f.Read(buf)
+		if n == 0 {
+		    // TODO: error
+		    fmt.Printf("no pid in %s\n", net.nsnwpath)
+		    continue
+		}
+		net.nsnwpid = string(buf[:n])
+		fmt.Printf("nsnw pid=%s tapname=%s\n", net.nsnwpid, net.nsnwtap)
 		continue
 	    }
 	    if param[:6] == "proxy=" {
