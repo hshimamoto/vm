@@ -41,6 +41,8 @@ type VMConfig struct {
     //
     qemuexec string
     //
+    nsnw *nsnw
+    //
     opts map[string]string
     //
     args []string
@@ -198,6 +200,8 @@ func NewVM(name string) *VMConfig {
 	vga: "std",
 	qemuexec: "qemu-system-x86_64",
 	//
+	nsnw: newnsnw(),
+	//
 	opts: map[string]string{},
 	//
 	hd0: drive{},
@@ -324,21 +328,7 @@ func (vm *VMConfig)parseOptions() {
 		    }
 		}
 		// get pid and tap
-		f, err := os.Open(net.nsnwpath)
-		if err != nil {
-		    // TODO: error
-		    fmt.Printf("unknown nsnw %s\n", net.nsnwpath)
-		    continue
-		}
-		defer f.Close()
-		buf := make([]byte, 32)
-		n, err := f.Read(buf)
-		if n == 0 {
-		    // TODO: error
-		    fmt.Printf("no pid in %s\n", net.nsnwpath)
-		    continue
-		}
-		net.nsnwpid = string(buf[:n])
+		net.nsnwpid = vm.nsnw.getpid(net.nsnwpath)
 		fmt.Printf("nsnw pid=%s tapname=%s\n", net.nsnwpid, net.nsnwtap)
 		continue
 	    }
