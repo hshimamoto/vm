@@ -54,6 +54,14 @@ func launch(opts []string) {
     if err != nil {
 	fmt.Printf("Run %v\n", err)
     }
+    // Post commands
+    posts := vm.Post()
+    for _, cmd := range posts {
+	err := cmd.Run()
+	if err != nil {
+	    fmt.Printf("Run %v\n", err)
+	}
+    }
 }
 
 func list(opts []string) {

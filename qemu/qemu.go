@@ -63,6 +63,29 @@ func (vm *VMConfig)Prepare() *exec.Cmd {
     return nil
 }
 
+func (vm *VMConfig)Post() []*exec.Cmd {
+    cmds := []*exec.Cmd{}
+    for _, net := range vm.networks {
+	if net.nsnwpid == "" {
+	    continue
+	}
+	var args []string
+	// ip link add <bridge> type bridge
+	args = []string{net.nsnwpid, "ip", "link", "add", net.nsnwbr, "type", "bridge"}
+	cmds = append(cmds, exec.Command("nsexec", args...))
+	// ip link set <bridge> up
+	args = []string{net.nsnwpid, "ip", "link", "set", net.nsnwbr, "up"}
+	cmds = append(cmds, exec.Command("nsexec", args...))
+	// ip link set <tapname> master <bridge>
+	args = []string{net.nsnwpid, "ip", "link", "set", net.nsnwtap, "master", net.nsnwbr}
+	cmds = append(cmds, exec.Command("nsexec", args...))
+	// ip link set <tapname> up
+	args = []string{net.nsnwpid, "ip", "link", "set", net.nsnwtap, "up"}
+	cmds = append(cmds, exec.Command("nsexec", args...))
+    }
+    return cmds
+}
+
 func (vm *VMConfig)Qemu() *exec.Cmd {
     vm.args = []string{}
     vm.push("-name", vm.name)
@@ -287,7 +310,6 @@ func (vm *VMConfig)parseOptions() {
 		if ok {
 		    net.nsnwtapfd = val
 		    fmt.Printf("%s=%s\n", net.nsnwtap, net.nsnwtapfd)
-		    continue
 		}
 		net.nsnwopt = param[5:]
 		opts := strings.Split(net.nsnwopt, ",")
