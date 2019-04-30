@@ -22,6 +22,14 @@ func push(a []string, k, v string) []string {
     return append(a, k + "=" + v)
 }
 
+func keyval(s string) (string, string) {
+    kv := strings.SplitN(s, "=", 2)
+    if len(kv) != 2 {
+	return strings.TrimSpace(kv[0]), ""
+    }
+    return strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1])
+}
+
 type VMConfig struct {
     dir string
     name string
@@ -210,12 +218,10 @@ func NewVM(name string) *VMConfig {
 }
 
 func (vm *VMConfig)addOption(opt string) {
-    kv := strings.SplitN(opt, "=", 2)
-    if len(kv) != 2 {
+    key, val := keyval(opt)
+    if val == "" {
 	return
     }
-    key := strings.TrimSpace(kv[0])
-    val := strings.TrimSpace(kv[1])
     fmt.Printf("%s = %s\n", key, val)
     if key[0] == '+' {
 	vm.opts[key[1:]] += " " + val
@@ -319,12 +325,12 @@ func (vm *VMConfig)parseOptions() {
 		net.nsnwopt = param[5:]
 		opts := strings.Split(net.nsnwopt, ",")
 		for _, kv := range opts {
-		    v := strings.SplitN(kv, "=", 2)
-		    switch v[0] {
+		    key, val := keyval(kv)
+		    switch key {
 		    case "path":
-			net.nsnwpath = v[1]
+			net.nsnwpath = val
 		    case "br":
-			net.nsnwbr = v[1]
+			net.nsnwbr = val
 		    }
 		}
 		// get pid and tap
