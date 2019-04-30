@@ -303,6 +303,7 @@ func (vm *VMConfig)parseOptions() {
 	    }
 	    if param[:5] == "nsnw=" {
 		net.nettype = "tap"
+		nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
 		net.nsnwtap = fmt.Sprintf("tap%s%d", vm.name, i)
 		// check env
 		key := fmt.Sprintf("NSTAPFD_%s", net.nsnwtap)
