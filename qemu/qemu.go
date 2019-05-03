@@ -140,10 +140,10 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     }
     vm.push("-virtfs", vm.virtfs.value())
     if vm.ovmf.code != "" {
-	vm.push("-drive if=pflash,format=raw,readonly,file=" + vm.ovmf.code)
+	vm.push("-drive", "if=pflash,format=raw,readonly,file=" + vm.ovmf.code)
     }
     if vm.ovmf.vars != "" {
-	vm.push("-drive if=pflash,format=raw,file=" + vm.ovmf.vars)
+	vm.push("-drive", "if=pflash,format=raw,file=" + vm.ovmf.vars)
     }
     if vm.noreboot {
 	vm.push("-no-reboot")
