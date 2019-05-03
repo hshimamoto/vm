@@ -148,6 +148,7 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     if vm.noreboot {
 	vm.push("-no-reboot")
     }
+    vm.push("-serial", "null")
     vm.pushif("-soundhw", vm.sound)
     vm.pushif("-usbdevice", vm.tablet)
     vm.pushif("-vga", vm.vga)
