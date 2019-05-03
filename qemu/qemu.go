@@ -30,6 +30,23 @@ func keyval(s string) (string, string) {
     return strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1])
 }
 
+type virtfs struct {
+    driver string
+    id string
+    path string
+    mount_tag string
+    security_model string
+}
+
+func (f *virtfs)value() string {
+    v := []string{ f.driver }
+    v = push(v, "id", f.id)
+    v = push(v, "path", f.path)
+    v = push(v, "mount_tag", f.mount_tag)
+    v = push(v, "security_model", f.security_model)
+    return strings.Join(v, ",")
+}
+
 type VMConfig struct {
     dir string
     name string
@@ -46,6 +63,7 @@ type VMConfig struct {
     //display string
     noreboot bool
     bootmenu string
+    virtfs virtfs
     //
     qemuexec string
     //
@@ -115,6 +133,7 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     for _, net := range vm.networks {
 	vm.push("-netdev", net.value())
     }
+    vm.push("-virtfs", vm.virtfs.value())
     if vm.noreboot {
 	vm.push("-no-reboot")
     }
@@ -259,6 +278,13 @@ func (vm *VMConfig)parseOptions() {
 	case "noshut": if val != "0" { vm.noreboot = true }
 	case "defaults": if val != "0" { vm.defaults = true }
 	case "cdrom": vm.drives = append(vm.drives, drive{ path: val, intf: "ide", media: "cdrom"})
+	case "virtfs": vm.virtfs = virtfs{
+					driver: "local",
+					id: "ground",
+					path: val,
+					mount_tag: "ground",
+					security_model: "none",
+				    }
 	}
     }
     // TODO hdX
