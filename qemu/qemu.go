@@ -193,7 +193,7 @@ func (vm *VMConfig)localSetup() {
 	}
     }
     if hd1.path != "" {
-	vm.drives = append(vm.drives, hd0)
+	vm.drives = append(vm.drives, hd1)
     }
 }
 
