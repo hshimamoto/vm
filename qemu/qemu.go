@@ -47,6 +47,10 @@ func (f *virtfs)value() string {
     return strings.Join(v, ",")
 }
 
+type ovmf struct {
+    code, vars string
+}
+
 type VMConfig struct {
     dir string
     name string
@@ -64,6 +68,7 @@ type VMConfig struct {
     noreboot bool
     bootmenu string
     virtfs virtfs
+    ovmf ovmf
     //
     qemuexec string
     //
@@ -134,6 +139,12 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
 	vm.push("-netdev", net.value())
     }
     vm.push("-virtfs", vm.virtfs.value())
+    if vm.ovmf.code != "" {
+	vm.push("-drive if=pflash,format=raw,readonly,file=" + vm.ovmf.code)
+    }
+    if vm.ovmf.vars != "" {
+	vm.push("-drive if=pflash,format=raw,file=" + vm.ovmf.vars)
+    }
     if vm.noreboot {
 	vm.push("-no-reboot")
     }
@@ -184,10 +195,19 @@ func (vm *VMConfig)plug(device interface{}) {
 func (vm *VMConfig)localSetup() {
     // hd0.qcow2 or hd0.raw
     hd0, hd1 := drive{}, drive{}
+    // ovmf
+    ovmf, ovmf_code, ovmf_vars := "", "", ""
     filepath.Walk(".",
 	func(path string, info os.FileInfo, err error) error {
 	    if err != nil {
 		return err
+	    }
+	    file := info.Name()
+	    // OVMF.fd?
+	    switch file {
+	    case "OVMF.fd": ovmf = file
+	    case "OVMF_CODE.fd": ovmf_code = file
+	    case "OVMF_VARS.fd": ovmf_vars = file
 	    }
 	    a := strings.Split(info.Name(), ".")
 	    if len(a) != 2 {
@@ -213,6 +233,12 @@ func (vm *VMConfig)localSetup() {
     }
     if hd1.path != "" {
 	vm.drives = append(vm.drives, hd1)
+    }
+    if ovmf_code != "" && ovmf_vars != "" {
+	vm.ovmf.code = ovmf_code
+	vm.ovmf.vars = ovmf_vars
+    } else if ovmf != "" {
+	vm.ovmf.vars = ovmf
     }
 }
 
