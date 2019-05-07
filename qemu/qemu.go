@@ -138,7 +138,9 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     for _, net := range vm.networks {
 	vm.push("-netdev", net.value())
     }
-    vm.push("-virtfs", vm.virtfs.value())
+    if vm.virtfs.path != "" {
+	vm.push("-virtfs", vm.virtfs.value())
+    }
     if vm.ovmf.code != "" {
 	vm.push("-drive", "if=pflash,format=raw,readonly,file=" + vm.ovmf.code)
     }
@@ -255,6 +257,7 @@ func NewVM(name string) *VMConfig {
 	qemuexec: "qemu-system-x86_64",
 	//
 	nsnw: newnsnw(),
+	virtfs: virtfs{},
 	//
 	opts: map[string]string{},
 	//
