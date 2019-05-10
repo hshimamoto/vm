@@ -33,6 +33,8 @@ type network struct {
     restrict string
     // socket
     localIP string
+    // tap
+    ifname string
     // nsnw
     nsnwopt string
     nsnwpath, nsnwbr string
@@ -58,6 +60,7 @@ func (n *network)value() string {
     case "socket":
 	v = push(v, "listen", fmt.Sprintf("%s:1111", n.localIP))
     case "tap":
+	v = push(v, "ifname", n.ifname)
 	v = push(v, "fd", n.nsnwtapfd)
     default:
 	// unknown

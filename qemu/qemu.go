@@ -367,6 +367,11 @@ func (vm *VMConfig)parseOptions() {
 		// TODO: post script
 		continue
 	    }
+	    if param[:4] == "tap=" {
+		net.nettype = "tap"
+		net.ifname = param[4:]
+		continue
+	    }
 	    if param[:5] == "nsnw=" {
 		net.nettype = "tap"
 		nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
