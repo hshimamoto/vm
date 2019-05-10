@@ -62,6 +62,9 @@ func (n *network)value() string {
     case "tap":
 	v = push(v, "ifname", n.ifname)
 	v = push(v, "fd", n.nsnwtapfd)
+	// never use scripts
+	v = push(v, "script", "no")
+	v = push(v, "downscript", "no")
     default:
 	// unknown
     }
