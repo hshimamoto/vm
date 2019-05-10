@@ -399,6 +399,15 @@ func (vm *VMConfig)parseOptions() {
 		fmt.Printf("nsnw pid=%s tapname=%s\n", net.nsnwpid, net.nsnwtap)
 		continue
 	    }
+	    if param[:4] == "mac=" {
+		mac := param[4:]
+		if mac == "auto" {
+		    nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
+		} else {
+		    nic.mac = mac
+		}
+		continue
+	    }
 	    if param[:6] == "proxy=" {
 		net.proxy = param[6:]
 		continue
