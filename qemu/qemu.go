@@ -347,6 +347,7 @@ func (vm *VMConfig)parseOptions() {
 	netdev := fmt.Sprintf("vnic%d", i)
 	nic := nic{ driver: "virtio-net", netdev: netdev }
 	net := network{ nettype: "user", netdev: netdev }
+	nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
 	params := strings.Split(nicX[i], " ")
 	for _, param := range params {
 	    if param == "default" {
@@ -363,7 +364,6 @@ func (vm *VMConfig)parseOptions() {
 	    if param[:7] == "socket=" {
 		net.nettype = "socket"
 		net.localIP = vm.localIP(i)
-		nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
 		// TODO: post script
 		continue
 	    }
@@ -374,7 +374,6 @@ func (vm *VMConfig)parseOptions() {
 	    }
 	    if param[:5] == "nsnw=" {
 		net.nettype = "tap"
-		nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
 		net.nsnwtap = fmt.Sprintf("tap%s%d", vm.name, i)
 		// check env
 		key := fmt.Sprintf("NSTAPFD_%s", net.nsnwtap)
@@ -401,9 +400,7 @@ func (vm *VMConfig)parseOptions() {
 	    }
 	    if param[:4] == "mac=" {
 		mac := param[4:]
-		if mac == "auto" {
-		    nic.mac = fmt.Sprintf("52:54:00:%02x:%02x:%02x", vm.id / 256, vm.id % 256, i)
-		} else {
+		if mac != "auto" {
 		    nic.mac = mac
 		}
 		continue
