@@ -13,6 +13,7 @@ import (
     "strings"
 
     "github.com/hshimamoto/vm/qemu"
+    "github.com/hshimamoto/vm/cloudinit"
     // for list
     "github.com/mitchellh/go-ps"
 )
@@ -30,6 +31,15 @@ func procread(pid int, file string) []string {
 	contents = append(contents, string(elem))
     }
     return contents
+}
+
+func cinit(opts []string) {
+    cwd, _ := os.Getwd()
+    err := cloudinit.Generate(cwd, "config", opts)
+    if err != nil {
+	return
+    }
+    fmt.Println("Generated")
 }
 
 func launch(opts []string) {
@@ -121,9 +131,12 @@ func main() {
     }
     subcmd := os.Args[1]
     fmt.Println(subcmd)
-    if subcmd == "launch" {
+    switch subcmd {
+    case "cloudinit":
+	cinit(os.Args[2:])
+    case "launch":
 	launch(os.Args[2:])
-    } else if subcmd == "list" {
+    case "list":
 	list(os.Args[2:])
     }
 }
