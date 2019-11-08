@@ -15,6 +15,7 @@ type drive struct {
     intf string
     // bus, unit, index string
     media string
+    id string
 }
 
 func (d *drive)value() string {
@@ -23,5 +24,6 @@ func (d *drive)value() string {
     v = push(v, "format", d.format)
     v = push(v, "if", d.intf)
     v = push(v, "media", d.media)
+    v = push(v, "id", d.id)
     return strings.Join(v, ",")
 }

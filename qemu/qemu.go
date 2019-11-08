@@ -64,6 +64,9 @@ type VMConfig struct {
     sound string
     tablet string
     vga string
+    // usb
+    usbhosts []usbhost
+    usbdevs []usb
     //display string
     noreboot bool
     bootmenu string
@@ -137,6 +140,12 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     }
     for _, net := range vm.networks {
 	vm.push("-netdev", net.value())
+    }
+    for _, usbhost := range vm.usbhosts {
+	vm.push("-device", "qemu-xhci,id=" + usbhost.id)
+    }
+    for _, usbdev := range vm.usbdevs {
+	vm.push("-device", usbdev.value())
     }
     if vm.virtfs.path != "" {
 	vm.push("-virtfs", vm.virtfs.value())
@@ -262,6 +271,9 @@ func NewVM(name string) *VMConfig {
 	opts: map[string]string{},
 	//
 	hd0: drive{},
+	// usb
+	usbhosts: []usbhost{},
+	usbdevs: []usb{},
     }
     return vm
 }
@@ -282,6 +294,7 @@ func (vm *VMConfig)addOption(opt string) {
 func (vm *VMConfig)parseOptions() {
     hdX := make([]string, 10)
     nicX := make([]string, 10)
+    usbX := make([]string, 10)
     for key, val := range vm.opts {
 	if len(key) > 2 && key[:2] == "hd" {
 	    // hdX
@@ -294,6 +307,13 @@ func (vm *VMConfig)parseOptions() {
 	    n, _ := strconv.Atoi(key[3:])
 	    nicX[n] = val
 	    fmt.Printf("nic%d %s\n", n, val)
+	    continue
+	}
+	if len(key) > 3 && key[:3] == "usb" {
+	    // usbX
+	    n, _ := strconv.Atoi(key[3:])
+	    usbX[n] = val
+	    fmt.Printf("usb%d %s\n", n, val)
 	    continue
 	}
 	switch key {
@@ -429,6 +449,49 @@ func (vm *VMConfig)parseOptions() {
 	}
 	vm.nics = append(vm.nics, nic)
 	vm.networks = append(vm.networks, net)
+    }
+    // usbX
+    for i := 0; i < 10; i++ {
+	if usbX[i] == "" {
+	    continue
+	}
+	usbdev := usb{}
+	// usb0 = storage=path bus=xhci
+	params := strings.Split(usbX[i], " ")
+	for _, param := range params {
+	    if param[:8] == "storage=" {
+		path := param[8:]
+		id := fmt.Sprintf("usbstorage%d", i)
+		// create drive
+		storage := drive{
+		    intf: "none",
+		    id: id,
+		    path: path,
+		    format: "raw",
+		}
+		vm.drives = append(vm.drives, storage)
+		usbdev.device = "storage"
+		usbdev.drive = id
+		continue
+	    }
+	    if param[:4] == "bus=" {
+		bus := param[4:]
+		ok := false
+		// lookup hosts
+		for _, usbhost := range vm.usbhosts {
+		    if usbhost.id == bus {
+			ok = true
+			break
+		    }
+		}
+		if !ok {
+		    vm.usbhosts = append(vm.usbhosts, usbhost{ id: bus })
+		}
+		usbdev.bus = bus
+		continue
+	    }
+	}
+	vm.usbdevs = append(vm.usbdevs, usbdev)
     }
 }
 
