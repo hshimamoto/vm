@@ -461,13 +461,18 @@ func (vm *VMConfig)parseOptions() {
 	for _, param := range params {
 	    if param[:8] == "storage=" {
 		path := param[8:]
+		a := strings.Split(path, ".")
+		format := "raw"
+		if a[1] == "qcow2" {
+		    format = "qcow2"
+		}
 		id := fmt.Sprintf("usbstorage%d", i)
 		// create drive
 		storage := drive{
 		    intf: "none",
 		    id: id,
 		    path: path,
-		    format: "raw",
+		    format: format,
 		}
 		vm.drives = append(vm.drives, storage)
 		usbdev.device = "storage"
