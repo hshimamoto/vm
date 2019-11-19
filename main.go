@@ -138,5 +138,7 @@ func main() {
 	launch(os.Args[2:])
     case "list":
 	list(os.Args[2:])
+    case "help":
+	fmt.Println("vm <cloudinit|launch|list>");
     }
 }
