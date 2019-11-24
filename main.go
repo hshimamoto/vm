@@ -8,7 +8,6 @@ package main
 import (
     "os"
     "fmt"
-    "strings"
 
     "github.com/hshimamoto/vm/proc"
     "github.com/hshimamoto/vm/qemu"
@@ -57,65 +56,18 @@ func launch(opts []string) {
 }
 
 func list(opts []string) {
-    psvm := proc.GetProcesses("qemu")
     // vm
     fmt.Println("vm")
-    for _, pid := range psvm {
-	args := proc.Procread(pid, "cmdline")
-	if len(args) == 0 {
-	    continue
-	}
-	name := ""
-	disp := ""
-	for i, arg := range args {
-	    switch arg {
-	    case "-name": name = args[i + 1]
-	    case "-display": disp = args[i + 1]
-	    }
-	}
-	envs := proc.Procread(pid, "environ")
-	if len(envs) == 0 {
-	    continue
-	}
-	vm_id := "-"
-	vm_name := "-"
-	vm_dir := "-"
-	vm_local_net := "-"
-	for _, env := range envs {
-	    kv := strings.SplitN(env, "=", 2)
-	    if len(kv) < 2 {
-		continue
-	    }
-	    k := kv[0]
-	    v := kv[1]
-	    switch k {
-	    case "VM_ID": vm_id = v
-	    case "VM_NAME": vm_name = v
-	    case "VM_DIR": vm_dir = v
-	    case "VM_LOCAL_NET": vm_local_net = v
-	    }
-	}
+    for _, vm := range proc.GetVMs() {
 	fmt.Printf("%d %s %s %s %s %s %s\n",
-		pid, name, disp, vm_id, vm_name, vm_dir, vm_local_net)
+		vm.Pid,
+		vm.Name, vm.Disp,
+		vm.VM_id, vm.VM_name, vm.VM_dir, vm.VM_local_net)
     }
     // nsnw
-    psnsnw := proc.GetProcesses("nsnw")
     fmt.Println("nsnw")
-    for _, pid := range psnsnw {
-	envs := proc.Procread(pid, "environ")
-	nsnw_name := "-"
-	for _, env := range envs {
-	    kv := strings.SplitN(env, "=", 2)
-	    if len(kv) < 2 {
-		continue
-	    }
-	    k := kv[0]
-	    v := kv[1]
-	    switch k {
-	    case "NSNW_NAME": nsnw_name = v
-	    }
-	}
-	fmt.Printf("%d %s\n", pid, nsnw_name)
+    for _, nsnw := range proc.GetNSNWs() {
+	fmt.Printf("%d %s\n", nsnw.Pid, nsnw.Name)
     }
 }
 
