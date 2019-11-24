@@ -6,32 +6,14 @@
 package main
 
 import (
-    "bytes"
-    "io/ioutil"
     "os"
     "fmt"
     "strings"
 
+    "github.com/hshimamoto/vm/proc"
     "github.com/hshimamoto/vm/qemu"
     "github.com/hshimamoto/vm/cloudinit"
-    // for list
-    "github.com/mitchellh/go-ps"
 )
-
-func procread(pid int, file string) []string {
-    contents := []string{}
-    procfile := fmt.Sprintf("/proc/%d/%s", pid, file)
-    f, err := os.Open(procfile)
-    if err != nil {
-	return contents
-    }
-    defer f.Close()
-    data, err := ioutil.ReadAll(f)
-    for _, elem := range bytes.Split(data, []byte("\x00")) {
-	contents = append(contents, string(elem))
-    }
-    return contents
-}
 
 func cinit(opts []string) {
     cwd, _ := os.Getwd()
@@ -75,20 +57,11 @@ func launch(opts []string) {
 }
 
 func list(opts []string) {
-    processes, err := ps.Processes()
-    if err != nil {
-	return
-    }
+    psvm := proc.GetProcesses("qemu")
     // vm
     fmt.Println("vm")
-    for _, p := range processes {
-	pid := p.Pid()
-	bin := p.Executable()
-	if strings.Index(bin, "qemu") == -1 {
-	    continue
-	}
-	//fmt.Printf("%d: %s\n", pid, bin)
-	args := procread(pid, "cmdline")
+    for _, pid := range psvm {
+	args := proc.Procread(pid, "cmdline")
 	if len(args) == 0 {
 	    continue
 	}
@@ -100,7 +73,7 @@ func list(opts []string) {
 	    case "-display": disp = args[i + 1]
 	    }
 	}
-	envs := procread(pid, "environ")
+	envs := proc.Procread(pid, "environ")
 	if len(envs) == 0 {
 	    continue
 	}
@@ -126,14 +99,10 @@ func list(opts []string) {
 		pid, name, disp, vm_id, vm_name, vm_dir, vm_local_net)
     }
     // nsnw
+    psnsnw := proc.GetProcesses("nsnw")
     fmt.Println("nsnw")
-    for _, p := range processes {
-	pid := p.Pid()
-	bin := p.Executable()
-	if strings.Index(bin, "nsnw") == -1 {
-	    continue
-	}
-	envs := procread(pid, "environ")
+    for _, pid := range psnsnw {
+	envs := proc.Procread(pid, "environ")
 	nsnw_name := "-"
 	for _, env := range envs {
 	    kv := strings.SplitN(env, "=", 2)
