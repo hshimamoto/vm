@@ -422,6 +422,9 @@ func (vm *VMConfig)parseOptions() error {
 			return fmt.Errorf("nsnw: bad opt");
 		    }
 		    nsnw := proc.GetNSNW(net.nsnwname)
+		    if nsnw == nil {
+			return fmt.Errorf("nsnw: no nsnw name=%s", net.nsnwname);
+		    }
 		    net.nsnwpid = fmt.Sprintf("%d", nsnw.Pid)
 		}
 		fmt.Printf("nsnw pid=%s tapname=%s\n", net.nsnwpid, net.nsnwtap)
