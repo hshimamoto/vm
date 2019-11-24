@@ -79,6 +79,8 @@ func list(opts []string) {
     if err != nil {
 	return
     }
+    // vm
+    fmt.Println("vm")
     for _, p := range processes {
 	pid := p.Pid()
 	bin := p.Executable()
@@ -122,6 +124,29 @@ func list(opts []string) {
 	}
 	fmt.Printf("%d %s %s %s %s %s %s\n",
 		pid, name, disp, vm_id, vm_name, vm_dir, vm_local_net)
+    }
+    // nsnw
+    fmt.Println("nsnw")
+    for _, p := range processes {
+	pid := p.Pid()
+	bin := p.Executable()
+	if strings.Index(bin, "nsnw") == -1 {
+	    continue
+	}
+	envs := procread(pid, "environ")
+	nsnw_name := "-"
+	for _, env := range envs {
+	    kv := strings.SplitN(env, "=", 2)
+	    if len(kv) < 2 {
+		continue
+	    }
+	    k := kv[0]
+	    v := kv[1]
+	    switch k {
+	    case "NSNW_NAME": nsnw_name = v
+	    }
+	}
+	fmt.Printf("%d %s\n", pid, nsnw_name)
     }
 }
 
