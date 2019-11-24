@@ -13,6 +13,8 @@ import (
     "path/filepath"
     "strconv"
     "strings"
+
+    "github.com/hshimamoto/vm/proc"
 )
 
 func push(a []string, k, v string) []string {
@@ -291,7 +293,7 @@ func (vm *VMConfig)addOption(opt string) {
     }
 }
 
-func (vm *VMConfig)parseOptions() {
+func (vm *VMConfig)parseOptions() error {
     hdX := make([]string, 10)
     nicX := make([]string, 10)
     usbX := make([]string, 10)
@@ -407,14 +409,21 @@ func (vm *VMConfig)parseOptions() {
 		for _, kv := range opts {
 		    key, val := keyval(kv)
 		    switch key {
-		    case "path":
-			net.nsnwpath = val
-		    case "br":
-			net.nsnwbr = val
+		    case "name": net.nsnwname = val
+		    case "path": net.nsnwpath = val
+		    case "br": net.nsnwbr = val
 		    }
 		}
 		// get pid and tap
-		net.nsnwpid = vm.nsnw.getpid(net.nsnwpath)
+		if net.nsnwpath != "" {
+		    net.nsnwpid = vm.nsnw.getpid(net.nsnwpath)
+		} else {
+		    if net.nsnwname == "" {
+			return fmt.Errorf("nsnw: bad opt");
+		    }
+		    nsnw := proc.GetNSNW(net.nsnwname)
+		    net.nsnwpid = fmt.Sprintf("%d", nsnw.Pid)
+		}
 		fmt.Printf("nsnw pid=%s tapname=%s\n", net.nsnwpid, net.nsnwtap)
 		continue
 	    }
@@ -498,6 +507,7 @@ func (vm *VMConfig)parseOptions() {
 	}
 	vm.usbdevs = append(vm.usbdevs, usbdev)
     }
+    return nil
 }
 
 func FromConfig(dir, path string, opts []string) (*VMConfig, error) {
@@ -525,7 +535,10 @@ func FromConfig(dir, path string, opts []string) (*VMConfig, error) {
     for _, opt := range opts {
 	vm.addOption(opt)
     }
-    vm.parseOptions()
+    if err := vm.parseOptions(); err != nil {
+	fmt.Printf("parse error: %v\n", err)
+	return nil, err
+    }
     vm.localSetup()
     return vm, nil
 }

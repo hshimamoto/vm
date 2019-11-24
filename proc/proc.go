@@ -111,3 +111,12 @@ func GetNSNWs() []NSNW {
     }
     return nsnws
 }
+
+func GetNSNW(name string) *NSNW {
+    for _, nsnw := range GetNSNWs() {
+	if nsnw.Name == name {
+	    return &nsnw
+	}
+    }
+    return nil
+}

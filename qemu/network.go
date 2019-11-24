@@ -37,7 +37,7 @@ type network struct {
     ifname string
     // nsnw
     nsnwopt string
-    nsnwpath, nsnwbr string
+    nsnwname, nsnwpath, nsnwbr string
     nsnwpid, nsnwtap string
     nsnwtapfd string
 }
