@@ -7,6 +7,7 @@ package main
 
 import (
     "os"
+    "os/exec"
     "fmt"
 
     "github.com/hshimamoto/vm/proc"
@@ -71,6 +72,23 @@ func list(opts []string) {
     }
 }
 
+func ssh(opts []string) {
+    tgt := opts[0]
+    for _, vm := range proc.GetVMs() {
+	if (vm.Name == tgt) {
+	    fmt.Printf("ssh to %s\n", tgt)
+	    os.Chdir(vm.VM_dir)
+	    cmd := exec.Command("ssh", "-p", "10022", "-i", "id_ecdsa", vm.VM_local_net)
+	    // pipe
+	    cmd.Stdin = os.Stdin
+	    cmd.Stdout = os.Stdout
+	    cmd.Stderr = os.Stderr
+	    cmd.Run()
+	    return
+	}
+    }
+}
+
 func main() {
     if len(os.Args) == 1 {
 	os.Exit(1)
@@ -84,7 +102,9 @@ func main() {
 	launch(os.Args[2:])
     case "list":
 	list(os.Args[2:])
+    case "ssh":
+	ssh(os.Args[2:])
     case "help":
-	fmt.Println("vm <cloudinit|launch|list>");
+	fmt.Println("vm <cloudinit|launch|list|ssh>");
     }
 }
