@@ -7,8 +7,8 @@ package main
 
 import (
     "os"
-    "os/exec"
     "fmt"
+    "syscall"
 
     "github.com/hshimamoto/vm/proc"
     "github.com/hshimamoto/vm/qemu"
@@ -81,13 +81,9 @@ func ssh(opts []string) {
 	if (vm.Name == tgt) {
 	    fmt.Printf("ssh to %s\n", tgt)
 	    os.Chdir(vm.VM_dir)
-	    cmd := exec.Command("ssh", "-p", "10022", "-i", "id_ecdsa", vm.VM_local_net)
-	    // pipe
-	    cmd.Stdin = os.Stdin
-	    cmd.Stdout = os.Stdout
-	    cmd.Stderr = os.Stderr
-	    cmd.Run()
-	    return
+	    args := []string{"ssh", "-p", "10022", "-i", "id_ecdsa", vm.VM_local_net}
+	    err := syscall.Exec("/usr/bin/ssh", args, os.Environ())
+	    fmt.Printf("Exec: %v\n", err)
 	}
     }
 }
