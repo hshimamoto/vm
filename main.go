@@ -59,14 +59,17 @@ func launch(opts []string) {
 func list(opts []string) {
     // vm
     fmt.Println("vm")
+    fmt.Println("----------------------------------------")
     for _, vm := range proc.GetVMs() {
 	fmt.Printf("%d %s %s %s %s %s %s\n",
 		vm.Pid,
 		vm.Name, vm.Disp,
 		vm.VM_id, vm.VM_name, vm.VM_dir, vm.VM_local_net)
     }
+    fmt.Println("")
     // nsnw
     fmt.Println("nsnw")
+    fmt.Println("----------------------------------------")
     for _, nsnw := range proc.GetNSNWs() {
 	fmt.Printf("%d %s\n", nsnw.Pid, nsnw.Name)
     }
