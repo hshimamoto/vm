@@ -1,6 +1,6 @@
 // vm/cloudinit
 //
-// MIT License Copyright(c) 2019 Hiroshi Shimamoto
+// MIT License Copyright(c) 2019,2020 Hiroshi Shimamoto
 // vim:set sw=4 sts=4:
 //
 package cloudinit
@@ -12,6 +12,8 @@ import (
     "os/exec"
     "strconv"
     "strings"
+
+    "github.com/kdomanski/iso9660"
 )
 
 func keyval(s string) (string, string) {
@@ -168,7 +170,37 @@ func Generate(dir, path string, opts []string) error {
     if err != nil {
 	return err
     }
-    // cloud-localds
-    exec.Command("cloud-localds", "user-data.img", "user-data", "meta-data").Run()
+    // create ISO9660 image
+    writer, err := iso9660.NewWriter()
+    if err != nil {
+	return err
+    }
+    meta, err := os.Open("meta-data")
+    if err != nil {
+	return err
+    }
+    defer meta.Close()
+    err = writer.AddFile(meta, "meta-data")
+    if err != nil {
+	return err
+    }
+    user, err := os.Open("user-data")
+    if err != nil {
+	return err
+    }
+    defer user.Close()
+    err = writer.AddFile(user, "user-data")
+    if err != nil {
+	return err
+    }
+    iso, err := os.OpenFile("user-data.img", os.O_WRONLY | os.O_TRUNC | os.O_CREATE, 0644)
+    if err != nil {
+	return err
+    }
+    defer iso.Close()
+    err = writer.WriteTo(iso, "cidata")
+    if err != nil {
+	return err
+    }
     return nil
 }
