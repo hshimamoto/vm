@@ -174,23 +174,19 @@ func Generate(dir, path string, opts []string) error {
 	return err
     }
     defer writer.Cleanup()
-    meta, err := os.Open("meta-data")
-    if err != nil {
-	return err
+    addfile := func(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+	    return err
+	}
+	defer f.Close()
+	return writer.AddFile(f, path)
     }
-    defer meta.Close()
-    err = writer.AddFile(meta, "meta-data")
-    if err != nil {
-	return err
+    if err := addfile("meta-data"); err != nil {
+	return err;
     }
-    user, err := os.Open("user-data")
-    if err != nil {
-	return err
-    }
-    defer user.Close()
-    err = writer.AddFile(user, "user-data")
-    if err != nil {
-	return err
+    if err := addfile("user-data"); err != nil {
+	return err;
     }
     iso, err := os.OpenFile("user-data.img", os.O_WRONLY | os.O_TRUNC | os.O_CREATE, 0644)
     if err != nil {
