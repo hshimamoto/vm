@@ -157,17 +157,15 @@ func Generate(dir, path string, opts []string) error {
 	cc.addOption(opt)
     }
     cc.parseOptions()
-    err = cc.keygen()
-    if err != nil {
+    // generate keys
+    if err := cc.keygen(); err != nil {
 	return err
     }
     // generate user-data and meta-data
-    err = cc.gen_userdata()
-    if err != nil {
+    if err := cc.gen_userdata(); err != nil {
 	return err
     }
-    err = cc.gen_metadata()
-    if err != nil {
+    if err := cc.gen_metadata(); err != nil {
 	return err
     }
     // create ISO9660 image
@@ -199,8 +197,7 @@ func Generate(dir, path string, opts []string) error {
 	return err
     }
     defer iso.Close()
-    err = writer.WriteTo(iso, "cidata")
-    if err != nil {
+    if err := writer.WriteTo(iso, "cidata"); err != nil {
 	return err
     }
     return nil
