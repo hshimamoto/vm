@@ -175,6 +175,7 @@ func Generate(dir, path string, opts []string) error {
     if err != nil {
 	return err
     }
+    defer writer.Cleanup()
     meta, err := os.Open("meta-data")
     if err != nil {
 	return err
