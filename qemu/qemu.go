@@ -1,6 +1,6 @@
 // vm/qemu
 //
-// MIT License Copyright(c) 2018,2019 Hiroshi Shimamoto
+// MIT License Copyright(c) 2018,2019,2020 Hiroshi Shimamoto
 // vim:set sw=4 sts=4:
 //
 package qemu
@@ -103,23 +103,21 @@ func (vm *VMConfig)Prepare() *exec.Cmd {
 
 func (vm *VMConfig)Post() []*exec.Cmd {
     cmds := []*exec.Cmd{}
+    add_nsexec := func(args ...string) []*exec.Cmd {
+	return append(cmds, exec.Command("nsexec", args...))
+    }
     for _, net := range vm.networks {
 	if net.nsnwpid == "" {
 	    continue
 	}
-	var args []string
 	// ip link add <bridge> type bridge
-	args = []string{net.nsnwpid, "ip", "link", "add", net.nsnwbr, "type", "bridge"}
-	cmds = append(cmds, exec.Command("nsexec", args...))
+	cmds = add_nsexec(net.nsnwpid, "ip", "link", "add", net.nsnwbr, "type", "bridge")
 	// ip link set <bridge> up
-	args = []string{net.nsnwpid, "ip", "link", "set", net.nsnwbr, "up"}
-	cmds = append(cmds, exec.Command("nsexec", args...))
+	cmds = add_nsexec(net.nsnwpid, "ip", "link", "set", net.nsnwbr, "up")
 	// ip link set <tapname> master <bridge>
-	args = []string{net.nsnwpid, "ip", "link", "set", net.nsnwtap, "master", net.nsnwbr}
-	cmds = append(cmds, exec.Command("nsexec", args...))
+	cmds = add_nsexec(net.nsnwpid, "ip", "link", "set", net.nsnwtap, "master", net.nsnwbr)
 	// ip link set <tapname> up
-	args = []string{net.nsnwpid, "ip", "link", "set", net.nsnwtap, "up"}
-	cmds = append(cmds, exec.Command("nsexec", args...))
+	cmds = add_nsexec(net.nsnwpid, "ip", "link", "set", net.nsnwtap, "up")
     }
     return cmds
 }
