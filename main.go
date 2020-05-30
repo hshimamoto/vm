@@ -41,7 +41,8 @@ func launch(opts []string) {
     }
     cmd := vm.Qemu()
 
-    err = cmd.Run()
+    out, err := cmd.CombinedOutput()
+    fmt.Printf("%s\n", string(out))
     // daemonize and return
     if err != nil {
 	fmt.Printf("Run %v\n", err)
