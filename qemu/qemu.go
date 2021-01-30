@@ -59,6 +59,7 @@ type VMConfig struct {
     id int
     cpu, smp, mem string
     defaults bool
+    localtime bool
     drives []drive
     hd0 drive
     nics []nic
@@ -131,6 +132,9 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     vm.push("-boot", vm.bootmenu)
     if !vm.defaults {
 	vm.push("-nodefaults")
+    }
+    if vm.localtime {
+	vm.push("-localtime")
     }
     for _, drive := range vm.drives {
 	vm.push("-drive", drive.value())
@@ -325,6 +329,7 @@ func (vm *VMConfig)parseOptions() error {
 	case "vga": vm.vga = val
 	case "sound": vm.sound = val
 	case "qemu": vm.qemuexec = val
+	case "localtime": if val != "0" { vm.localtime = true }
 	case "noshut": if val != "0" { vm.noreboot = true }
 	case "defaults": if val != "0" { vm.defaults = true }
 	case "cdrom": vm.drives = append(vm.drives, drive{ path: val, intf: "ide", media: "cdrom"})
