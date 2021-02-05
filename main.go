@@ -6,8 +6,10 @@
 package main
 
 import (
+    "io/ioutil"
     "os"
     "fmt"
+    "strings"
     "syscall"
 
     "github.com/hshimamoto/vm/proc"
@@ -82,7 +84,24 @@ func ssh(opts []string) {
 	if (vm.Name == tgt) {
 	    fmt.Printf("ssh to %s\n", tgt)
 	    os.Chdir(vm.VM_dir)
-	    args := []string{"ssh", "-p", "10022", "-i", "id_ecdsa", vm.VM_local_net}
+	    u := ""
+	    if data, err := ioutil.ReadFile("config"); err == nil {
+		for _, line := range strings.Split(string(data), "\n") {
+		    if line == "" || line[0] == '#' {
+			continue
+		    }
+		    f := strings.Fields(line)
+		    if f[0] == "user" {
+			u = f[2]
+			break
+		    }
+		}
+	    }
+	    args := []string{"ssh", "-p", "10022", "-i", "id_ecdsa"}
+	    if u != "" {
+		args = append(args, "-l", u)
+	    }
+	    args = append(args, vm.VM_local_net)
 	    err := syscall.Exec("/usr/bin/ssh", args, os.Environ())
 	    fmt.Printf("Exec: %v\n", err)
 	}
