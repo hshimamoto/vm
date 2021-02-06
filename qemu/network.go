@@ -61,7 +61,12 @@ func (n *network)value() string {
 	v = push(v, "listen", fmt.Sprintf("%s:1111", n.localIP))
     case "tap":
 	v = push(v, "ifname", n.ifname)
-	v = push(v, "fd", n.nsnwtapfd)
+	if n.nsnwtapfd != "" {
+	    v = push(v, "fd", n.nsnwtapfd)
+	} else {
+	    v = push(v, "script", "no")
+	    v = push(v, "downscript", "no")
+	}
     default:
 	// unknown
     }
