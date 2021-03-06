@@ -12,9 +12,9 @@ import (
     "strings"
     "syscall"
 
-    "github.com/hshimamoto/vm/proc"
-    "github.com/hshimamoto/vm/qemu"
-    "github.com/hshimamoto/vm/cloudinit"
+    "vm/proc"
+    "vm/qemu"
+    "vm/cloudinit"
 )
 
 func cinit(opts []string) {

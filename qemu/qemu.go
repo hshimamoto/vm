@@ -14,7 +14,7 @@ import (
     "strconv"
     "strings"
 
-    "github.com/hshimamoto/vm/proc"
+    "vm/proc"
 )
 
 func push(a []string, k, v string) []string {
