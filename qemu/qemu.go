@@ -168,7 +168,7 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     vm.pushif("-usbdevice", vm.tablet)
     vm.pushif("-vga", vm.vga)
     // display vnc=:id
-    vm.push("-display", fmt.Sprintf("vnc=%s:5900", vm.localIP(0)))
+    vm.push("-display", fmt.Sprintf("vnc=%s:0", vm.localIP(0)))
     // always on
     vm.push("-enable-kvm")
     vm.push("-daemonize")
