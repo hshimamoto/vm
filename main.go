@@ -97,7 +97,15 @@ func ssh(opts []string) {
 		    }
 		}
 	    }
-	    args := []string{"ssh", "-p", "10022", "-i", "id_ecdsa"}
+	    // check priv keyfile
+	    key := "id_ed25519"
+	    if _, err := os.Stat(key); err != nil {
+		key = "id_ecdsa"
+		if _, err := os.Stat(key); err != nil {
+		    key = "id_rsa"
+		}
+	    }
+	    args := []string{"ssh", "-p", "10022", "-i", key}
 	    if u != "" {
 		args = append(args, "-l", u)
 	    }
