@@ -49,7 +49,7 @@ func (cc *CloudConfig)parseOptions() {
     }
     // set default
     if cc.key == "" {
-	cc.key = "id_ecdsa"
+	cc.key = "id_ed25519"
     }
     if cc.user == "" {
 	cc.key = "ubuntu"
@@ -74,11 +74,13 @@ func (cc *CloudConfig)keygen() error {
 	// already have
 	return nil
     }
-    typ := "ecdsa"
-    if cc.key == "id_rsa" {
+    typ := "ed25519"
+    if cc.key == "id_ecdsa" {
+	typ = "ecdsa"
+    } else if cc.key == "id_rsa" {
 	typ = "rsa"
     }
-    return exec.Command("ssh-keygen", "-t", typ, "-f", cc.key, "-N", "").Run()
+    return exec.Command("ssh-keygen", "-t", typ, "-f", cc.key, "-N", "", "-C", "generated").Run()
 }
 
 func (cc *CloudConfig)gen_userdata() error {
