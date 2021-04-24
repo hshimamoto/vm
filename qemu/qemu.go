@@ -523,7 +523,6 @@ func (vm *VMConfig)parseOptions() error {
 	if virtfsX[i] == "" {
 	    continue
 	}
-	fmt.Printf("DEBUG: virtfs %d %s\n", i, virtfsX[i])
 	v := virtfs{
 	    driver: "local",
 	    id: fmt.Sprintf("virtfs%d", i),
