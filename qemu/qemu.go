@@ -1,6 +1,6 @@
 // vm/qemu
 //
-// MIT License Copyright(c) 2018,2019,2020 Hiroshi Shimamoto
+// MIT License Copyright(c) 2018,2019,2020,2021 Hiroshi Shimamoto
 // vim:set sw=4 sts=4:
 //
 package qemu
@@ -73,7 +73,7 @@ type VMConfig struct {
     //display string
     noreboot bool
     bootmenu string
-    virtfs virtfs
+    virtfs []virtfs
     ovmf ovmf
     //
     qemuexec string
@@ -151,8 +151,9 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     for _, usbdev := range vm.usbdevs {
 	vm.push("-device", usbdev.value())
     }
-    if vm.virtfs.path != "" {
-	vm.push("-virtfs", vm.virtfs.value())
+    for _, virtfs := range vm.virtfs {
+	fmt.Printf("DEBUG -virtfs %v\n", virtfs)
+	vm.push("-virtfs", virtfs.value())
     }
     if vm.ovmf.code != "" {
 	vm.push("-drive", "if=pflash,format=raw,readonly,file=" + vm.ovmf.code)
@@ -270,7 +271,7 @@ func NewVM(name string) *VMConfig {
 	qemuexec: "qemu-system-x86_64",
 	//
 	nsnw: newnsnw(),
-	virtfs: virtfs{},
+	virtfs: []virtfs{},
 	//
 	opts: map[string]string{},
 	//
@@ -299,6 +300,7 @@ func (vm *VMConfig)parseOptions() error {
     hdX := make([]string, 10)
     nicX := make([]string, 10)
     usbX := make([]string, 10)
+    virtfsX := make([]string, 10)
     for key, val := range vm.opts {
 	if len(key) > 2 && key[:2] == "hd" {
 	    // hdX
@@ -320,6 +322,12 @@ func (vm *VMConfig)parseOptions() error {
 	    fmt.Printf("usb%d %s\n", n, val)
 	    continue
 	}
+	if len(key) > 6 && key[:6] == "virtfs" {
+	    n, _ := strconv.Atoi(key[6:])
+	    virtfsX[n] = val
+	    fmt.Printf("virtfs%d %s\n", n, val)
+	    continue
+	}
 	switch key {
 	case "name": vm.name = val
 	case "id": vm.id, _ = strconv.Atoi(val)
@@ -333,13 +341,7 @@ func (vm *VMConfig)parseOptions() error {
 	case "noshut": if val != "0" { vm.noreboot = true }
 	case "defaults": if val != "0" { vm.defaults = true }
 	case "cdrom": vm.drives = append(vm.drives, drive{ path: val, intf: "ide", media: "cdrom"})
-	case "virtfs": vm.virtfs = virtfs{
-					driver: "local",
-					id: "ground",
-					path: val,
-					mount_tag: "ground",
-					security_model: "none",
-				    }
+	case "virtfs": virtfsX[0] = val
 	}
     }
     // TODO hdX
@@ -512,6 +514,24 @@ func (vm *VMConfig)parseOptions() error {
 	    }
 	}
 	vm.usbdevs = append(vm.usbdevs, usbdev)
+    }
+    // virtfsA
+    for i := 0; i < 10; i++ {
+	if virtfsX[i] == "" {
+	    continue
+	}
+	fmt.Printf("DEBUG: virtfs %d %s\n", i, virtfsX[i])
+	v := virtfs{
+	    driver: "local",
+	    id: fmt.Sprintf("virtfs%d", i),
+	    path: virtfsX[i],
+	    mount_tag: "ground",
+	    security_model: "none",
+	}
+	if i > 0 {
+	    v.mount_tag = fmt.Sprintf("ground%d", i)
+	}
+	vm.virtfs = append(vm.virtfs, v)
     }
     return nil
 }
