@@ -38,6 +38,7 @@ type virtfs struct {
     path string
     mount_tag string
     security_model string
+    readonly bool
 }
 
 func (f *virtfs)value() string {
@@ -46,6 +47,9 @@ func (f *virtfs)value() string {
     v = push(v, "path", f.path)
     v = push(v, "mount_tag", f.mount_tag)
     v = push(v, "security_model", f.security_model)
+    if f.readonly {
+	v = append(v, "readonly")
+    }
     return strings.Join(v, ",")
 }
 
@@ -152,7 +156,6 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
 	vm.push("-device", usbdev.value())
     }
     for _, virtfs := range vm.virtfs {
-	fmt.Printf("DEBUG -virtfs %v\n", virtfs)
 	vm.push("-virtfs", virtfs.value())
     }
     if vm.ovmf.code != "" {
@@ -527,9 +530,17 @@ func (vm *VMConfig)parseOptions() error {
 	    path: virtfsX[i],
 	    mount_tag: "ground",
 	    security_model: "none",
+	    readonly: false,
 	}
 	if i > 0 {
 	    v.mount_tag = fmt.Sprintf("ground%d", i)
+	}
+	vals := strings.Split(virtfsX[i], " ")
+	for _, val := range vals {
+	    switch val {
+	    case "readonly": v.readonly = true
+	    default: v.path = val
+	    }
 	}
 	vm.virtfs = append(vm.virtfs, v)
     }
