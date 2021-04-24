@@ -537,6 +537,10 @@ func (vm *VMConfig)parseOptions() error {
 	}
 	vals := strings.Split(virtfsX[i], " ")
 	for _, val := range vals {
+	    if len(val) > 4 && val[:4] == "tag=" {
+		v.mount_tag = val[4:]
+		continue
+	    }
 	    switch val {
 	    case "readonly": v.readonly = true
 	    default: v.path = val
