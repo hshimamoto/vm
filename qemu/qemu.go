@@ -347,6 +347,14 @@ func (vm *VMConfig)parseOptions() error {
 	case "virtfs": virtfsX[0] = val
 	}
     }
+    if vm.smp != "" {
+	params := strings.Split(vm.smp, ",")
+	if len(params) == 1 {
+	    // single socket multiple cores
+	    smp := vm.smp
+	    vm.smp = fmt.Sprintf("%s,sockets=1,cores=%s", smp, smp)
+	}
+    }
     // TODO hdX
     // check only hd0
     if hdX[0] != "" {
