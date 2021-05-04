@@ -43,6 +43,16 @@ func launch(opts []string) {
     }
     cmd := vm.Qemu()
 
+    // increase ulimit -n
+    var r syscall.Rlimit
+    if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &r); err == nil {
+	fmt.Printf("increase %d->%d\n", r.Cur, r.Max)
+	r.Cur = r.Max
+	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &r); err != nil {
+	    fmt.Printf("failed: %v\n", err)
+	}
+    }
+
     out, err := cmd.CombinedOutput()
     fmt.Printf("%s\n", string(out))
     // daemonize and return
