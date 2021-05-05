@@ -81,6 +81,8 @@ type VMConfig struct {
     virtfs []virtfs
     ovmf ovmf
     //
+    kernel, initrd, cmdline string
+    //
     qemuexec string
     //
     nsnw *nsnw
@@ -167,6 +169,11 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     }
     if vm.noreboot {
 	vm.push("-no-reboot")
+    }
+    if vm.kernel != "" {
+	vm.push("-kernel", vm.kernel)
+	vm.pushif("-initrd", vm.initrd)
+	vm.pushif("-append", vm.cmdline)
     }
     vm.push("-serial", vm.serial)
     vm.pushif("-soundhw", vm.sound)
@@ -349,6 +356,9 @@ func (vm *VMConfig)parseOptions() error {
 	case "defaults": if val != "0" { vm.defaults = true }
 	case "cdrom": vm.drives = append(vm.drives, drive{ path: val, intf: "ide", media: "cdrom"})
 	case "virtfs": virtfsX[0] = val
+	case "kernel": vm.kernel = val
+	case "initrd": vm.initrd = val
+	case "append": vm.cmdline = val
 	}
     }
     if vm.smp != "" {
