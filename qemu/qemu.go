@@ -68,6 +68,7 @@ type VMConfig struct {
     hd0 drive
     nics []nic
     networks []network
+    serial string
     sound string
     tablet string
     vga string
@@ -167,7 +168,7 @@ func (vm *VMConfig)Qemu() *exec.Cmd {
     if vm.noreboot {
 	vm.push("-no-reboot")
     }
-    vm.push("-serial", "null")
+    vm.push("-serial", vm.serial)
     vm.pushif("-soundhw", vm.sound)
     vm.pushif("-usbdevice", vm.tablet)
     vm.pushif("-vga", vm.vga)
@@ -282,6 +283,8 @@ func NewVM(name string) *VMConfig {
 	// usb
 	usbhosts: []usbhost{},
 	usbdevs: []usb{},
+	// serial
+	serial: "null",
     }
     return vm
 }
@@ -338,6 +341,7 @@ func (vm *VMConfig)parseOptions() error {
 	case "smp": vm.smp = val
 	case "mem": vm.mem = val
 	case "vga": vm.vga = val
+	case "serial": vm.serial = val
 	case "sound": vm.sound = val
 	case "qemu": vm.qemuexec = val
 	case "localtime": if val != "0" { vm.localtime = true }
